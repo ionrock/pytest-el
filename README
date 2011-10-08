@@ -1,0 +1,8 @@
+===========
+ pytest.el
+===========
+
+
+This is a simple test runner for Emacs that is ported from Nosemacs_
+
+.. _Nosemacs: https://bitbucket.org/durin42/nosemacs/src/d413c247aea7/nose.el
