@@ -60,6 +60,7 @@
 (defvar pytest-project-root-test 'pytest-project-root)
 (defvar pytest-global-name "pytest")
 (defvar pytest-use-verbose nil)
+(defvar pytest-loop-on-failing nil)
 
 (defun run-pytest (&optional tests debug failed)
   "run pytest"
@@ -67,19 +68,15 @@
          (where (pytest-find-project-root))
          (args (concat (if debug "--pdb" "")
                        (if debug " " "")
-                       (if failed "-f" "")))
+                       (if pytest-loop-on-failing "-f" "")))
          (tnames (if tests tests "")))
-    (funcall (if debug
-                 'pdb
+    (funcall (if debug 'pdb
                '(lambda (command)
-                  (compilation-start command
-                                     nil
+                  (compilation-start command nil
                                      (lambda (mode) (concat "*pytest*")))))
              (format
-              (concat "%s "
-                      (if pytest-use-verbose "-v " "")
-                      "%s %s")
-              (pytest-find-test-runner) args tnames))))
+              (concat "cd %s && %s " (if pytest-use-verbose "-v " "") "%s %s")
+              where (pytest-find-test-runner) args tnames))))
 
 (defun pytest-all (&optional debug failed)
   "run all tests"
