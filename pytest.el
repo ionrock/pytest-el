@@ -68,7 +68,10 @@
          (where (pytest-find-project-root))
          (args (concat (if debug "--pdb" "")
                        (if debug " " "")
-                       (if pytest-loop-on-failing "-f" "")))
+		       ;; It doesn't makes sense to loop on failing
+		       ;; without stopping at the broken test. Added
+		       ;; the -x flag.
+                       (if pytest-loop-on-failing "-x -f" "")))
          (tnames (if tests tests "")))
     (funcall (if debug 'pdb
                '(lambda (command)
