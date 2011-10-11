@@ -61,6 +61,7 @@
 (defvar pytest-global-name "pytest")
 (defvar pytest-use-verbose nil)
 (defvar pytest-loop-on-failing nil)
+(defvar pytest-assert-plain nil)
 
 (defun run-pytest (&optional tests debug failed)
   "run pytest"
@@ -71,7 +72,11 @@
 		       ;; It doesn't makes sense to loop on failing
 		       ;; without stopping at the broken test. Added
 		       ;; the -x flag.
-                       (if pytest-loop-on-failing "-x -f" "")))
+                       (if pytest-loop-on-failing "-x -f" "")
+                       (if pytest-loop-on-failing " " "")
+
+		       ;; Don't try to rewrite the errors
+		       (if pytest-assert-plain "--assert=plain" "")))
          (tnames (if tests tests "")))
     (funcall (if debug 'pdb
                '(lambda (command)
