@@ -51,6 +51,7 @@
 ;;             (local-set-key "\C-ca" 'pytest-all)
 ;;             (local-set-key "\C-cm" 'pytest-module)
 ;;             (local-set-key "\C-c." 'pytest-one)
+;;             (local-set-key "\C-cd" 'pytest-directory)
 ;;             (local-set-key "\C-cpa" 'pytest-pdb-all)
 ;;             (local-set-key "\C-cpm" 'pytest-pdb-module)
 ;;             (local-set-key "\C-cp." 'pytest-pdb-one)))
@@ -86,6 +87,8 @@
               (concat "cd %s && %s " (if pytest-use-verbose "-v " "") "%s %s")
               where (pytest-find-test-runner) args tnames))))
 
+
+;;; Run entire test suite
 (defun pytest-all (&optional debug failed)
   "run all tests"
   (interactive)
@@ -99,6 +102,18 @@
   (interactive)
   (pytest-all t))
 
+;;; Run all the tests in a directory (and its child directories)
+(defun pytest-directory (&optional debug)
+  "run pytest on all the files in the current buffer"
+  (interactive)
+  (run-pytest (file-name-directory buffer-file-name) debug))
+
+(defun pytest-pdb-directory (&optional debug)
+  "run pytest on all the files in the current buffer"
+  (interactive)
+  (pytest-directory t)
+
+;;; Run all the tests in a file
 (defun pytest-module (&optional debug)
   "run pytest (via eggs/bin/test) on current buffer"
   (interactive)
@@ -108,6 +123,7 @@
   (interactive)
   (pytest-module t))
 
+;;; Run the test surrounding the current point
 (defun pytest-one (&optional debug)
   "run pytest (via eggs/bin/test) on testable thing
  at point in current buffer"
@@ -118,6 +134,8 @@
   (interactive)
   (pytest-one t))
 
+
+;;; Utility functions
 (defun pytest-find-test-runner ()
   (message
    (let ((result
@@ -152,12 +170,14 @@
           (t (format "%s.%s" outer-obj inner-obj)))))
 
 (defun inner-testable ()
+  "Finds the function name for pytest-one"
   (save-excursion
     (re-search-backward
      "^ \\{0,4\\}\\(class\\|def\\)[ \t]+\\([a-zA-Z0-9_]+\\)" nil t)
     (buffer-substring-no-properties (match-beginning 2) (match-end 2))))
 
 (defun outer-testable ()
+  "Finds the class for the pytest-one"
   (save-excursion
     (re-search-backward
      "^\\(class\\|def\\)[ \t]+\\([a-zA-Z0-9_]+\\)" nil t)
