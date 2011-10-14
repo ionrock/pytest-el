@@ -1,4 +1,4 @@
-;; pytest.el --- Easy Python test running in Emacs
+;;; pytest.el --- Easy Python test running in Emacs
 
 ;; Copyright (C) 2009 Eric Larson
 
@@ -6,6 +6,7 @@
 
 ;; Version: 0.1.0
 ;; Keywords: pytest python testing
+;; URL: http://bitbucket.org/elarson/pytest.el
 ;; Created: 07 Oct 2011
 
 ;; This file is NOT part of GNU Emacs.
@@ -23,12 +24,19 @@
 
 ;; In your emacs config:
 ;;
-;; (require 'pytest)
-;; ; next line only for people with non-eco non-global test runners
-;; ; (add-to-list 'pytest-project-names "my/crazy/runner")
-;; This should be a file or script that will run the tests
+;;   (require 'pytest)
+;; 
+;; If you don't use a global installation of py.test (ie in
+;; virtualenv) then add something like the following that points to
+;; either the non-global version or a test runner script.:
+;;
+;;   (add-to-list 'pytest-project-names "my/crazy/runner") This should
+;; 
+;; You can generate a script with py.test:
+;;
+;;   py.test --genscript=run-tests.py
 
-;; Note that if your global pytest isn't called "pytest", then you'll want to
+;; Another option is if your global pytest isn't called "pytest" is to 
 ;; redefine pytest-global-name to be the command that should be used.
 
 ;; By default, the root of a project is found by looking for any of the files
@@ -41,9 +49,6 @@
 ;; whether a directory is the project root:
 ;;
 ;; ; (setq pytest-project-root-test (lambda (dirname) (equal dirname "foo")))
-
-;; If you want dots as output, rather than the verbose output:
-;; (defvar pytest-use-verbose nil) ; default is t
 
 ;; Probably also want some keybindings:
 ;; (add-hook 'python-mode-hook
@@ -111,7 +116,7 @@
 (defun pytest-pdb-directory (&optional debug)
   "run pytest on all the files in the current buffer"
   (interactive)
-  (pytest-directory t)
+  (pytest-directory t))
 
 ;;; Run all the tests in a file
 (defun pytest-module (&optional debug)
