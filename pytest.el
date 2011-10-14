@@ -30,7 +30,7 @@
 ;; virtualenv) then add something like the following that points to
 ;; either the non-global version or a test runner script.:
 ;;
-;;   (add-to-list 'pytest-project-names "my/crazy/runner") This should
+;;   (add-to-list 'pytest-project-names "my/crazy/runner")
 ;; 
 ;; You can generate a script with py.test:
 ;;
