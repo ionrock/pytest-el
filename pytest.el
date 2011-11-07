@@ -76,9 +76,8 @@
                '(lambda (command)
                   (compilation-start command nil
                                      (lambda (mode) (concat "*pytest*")))))
-             (format
-              (concat "cd %s && %s " (if pytest-use-verbose "-v " "") "%s %s")
-              where (pytest-find-test-runner) pytest-cmd-flags tnames))))
+             (format "cd %s && %s %s %s"
+		     where (pytest-find-test-runner) pytest-cmd-flags tnames))))
 
 
 ;;; Run entire test suite
