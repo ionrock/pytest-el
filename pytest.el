@@ -65,24 +65,12 @@
 (defvar pytest-project-root-files '("setup.py" ".hg" ".git"))
 (defvar pytest-project-root-test 'pytest-project-root)
 (defvar pytest-global-name "pytest")
-(defvar pytest-use-verbose nil)
-(defvar pytest-loop-on-failing nil)
-(defvar pytest-assert-plain nil)
+(defvar pytest-cmd-flags "-x")
 
 (defun run-pytest (&optional tests debug failed)
   "run pytest"
   (let* ((pytest (pytest-find-test-runner))
          (where (pytest-find-project-root))
-         (args (concat (if debug "--pdb" "")
-                       (if debug " " "")
-		       ;; It doesn't makes sense to loop on failing
-		       ;; without stopping at the broken test. Added
-		       ;; the -x flag.
-                       (if pytest-loop-on-failing "-x -f" "")
-                       (if pytest-loop-on-failing " " "")
-
-		       ;; Don't try to rewrite the errors
-		       (if pytest-assert-plain "--assert=plain" "")))
          (tnames (if tests tests "")))
     (funcall (if debug 'pdb
                '(lambda (command)
@@ -90,7 +78,7 @@
                                      (lambda (mode) (concat "*pytest*")))))
              (format
               (concat "cd %s && %s " (if pytest-use-verbose "-v " "") "%s %s")
-              where (pytest-find-test-runner) args tnames))))
+              where (pytest-find-test-runner) pytest-cmd-flags tnames))))
 
 
 ;;; Run entire test suite
