@@ -61,11 +61,23 @@
 ;;             (local-set-key "\C-cpm" 'pytest-pdb-module)
 ;;             (local-set-key "\C-cp." 'pytest-pdb-one)))
 
-(defvar pytest-project-names '("runtests.py"))
-(defvar pytest-project-root-files '("setup.py" ".hg" ".git"))
-(defvar pytest-project-root-test 'pytest-project-root)
-(defvar pytest-global-name "pytest")
-(defvar pytest-cmd-flags "-x")
+(defcustom pytest-project-names '("runtests.py")
+  "The name of the script that starts the tests")
+
+(defcustom pytest-project-root-files '("setup.py" ".hg" ".git")
+  "Names of files or directories that signify the root of a
+  project")
+
+(defcustom pytest-project-root-test 'pytest-project-root
+  "A function used to determine the directory the tests will be
+  run from.")
+
+(defcustom pytest-global-name "pytest"
+  "The name of the py.test executable")
+
+(defcustom pytest-cmd-flags "-x"
+  "These are the flags passed to the pytest runner")
+  
 
 (defun run-pytest (&optional tests debug failed)
   "run pytest"
@@ -132,7 +144,7 @@
   (message
    (let ((result
           (reduce '(lambda (x y) (or x y))
-        (mapcar 'pytest-find-test-runner-names pytest-project-names))))
+		  (mapcar 'pytest-find-test-runner-names pytest-project-names))))
      (if result
          result
        pytest-global-name))))
