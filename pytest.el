@@ -4,7 +4,7 @@
 
 ;; Licensed under the same terms as Emacs.
 
-;; Version: 0.2.0
+;; Version: 0.2.1
 ;; Keywords: pytest python testing
 ;; URL: http://bitbucket.org/elarson/pytest.el
 ;; Created: 07 Oct 2011
