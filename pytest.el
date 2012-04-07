@@ -78,65 +78,73 @@
 (defcustom pytest-cmd-flags "-x"
   "These are the flags passed to the pytest runner")
   
-
-(defun run-pytest (&optional tests debug failed)
+(defun run-pytest (&optional tests flags)
   "run pytest"
   (let* ((pytest (pytest-find-test-runner))
          (where (pytest-find-project-root))
-         (tnames (if tests tests "")))
-    (funcall (if debug 'pdb
-               '(lambda (command)
-                  (compilation-start command nil
-                                     (lambda (mode) (concat "*pytest*")))))
-             (format "cd %s && %s %s %s"
-		     where (pytest-find-test-runner) pytest-cmd-flags tnames))))
-
+         (tnames (if tests tests ""))
+	 (cmd-flags (if flags flags pytest-cmd-flags)))
+    (funcall '(lambda (command)
+		(compilation-start command nil
+				   (lambda (mode) (concat "*pytest*"))))
+	     (format "cd %s && %s %s %s"
+		     where (pytest-find-test-runner) cmd-flags tnames))))
 
 ;;; Run entire test suite
-(defun pytest-all (&optional debug failed)
+(defun pytest-all (&optional flags)
   "run all tests"
   (interactive)
-  (run-pytest nil debug failed))
+  (run-pytest nil flags))
 
-(defun pytest-failed (&optional debug)
+(defun pytest-failed ()
   (interactive)
-  (pytest-all debug t))
+  (pytest-all "-x -k "))
 
 (defun pytest-pdb-all ()
   (interactive)
-  (pytest-all t))
+  (pytest-all "--pdb -x"))
 
 ;;; Run all the tests in a directory (and its child directories)
-(defun pytest-directory (&optional debug)
+(defun pytest-directory (&optional flags)
   "run pytest on all the files in the current buffer"
   (interactive)
-  (run-pytest (file-name-directory buffer-file-name) debug))
+  (run-pytest (file-name-directory buffer-file-name) flags)) 
 
-(defun pytest-pdb-directory (&optional debug)
+(defun pytest-pdb-directory (&optional flags)
   "run pytest on all the files in the current buffer"
   (interactive)
-  (pytest-directory t))
+  (pytest-directory "--pdb -x "))
 
 ;;; Run all the tests in a file
-(defun pytest-module (&optional debug)
+(defun pytest-module (&optional flags)
   "run pytest (via eggs/bin/test) on current buffer"
   (interactive)
-  (run-pytest buffer-file-name debug))
+  (run-pytest buffer-file-name flags))
 
 (defun pytest-pdb-module ()
   (interactive)
-  (pytest-module t))
+  (pytest-module "--pdb -x"))
 
 ;;; Run the test surrounding the current point
-(defun pytest-one (&optional debug)
+(defun pytest-one (&optional flags)
   "run pytest (via eggs/bin/test) on testable thing
  at point in current buffer"
   (interactive)
-  (run-pytest (format "-k %s %s" (pytest-py-testable) buffer-file-name) debug))
+  (run-pytest (format (concat flags "-k %s %s") (pytest-py-testable) buffer-file-name) ))
 
 (defun pytest-pdb-one ()
   (interactive)
-  (pytest-one t))
+  (pytest-one "-x "))
+
+(defun pytest-run ()
+  "Run the tests interactively asking for the test flags and
+file/dir"
+  (interactive)
+  (let ((tests (expand-file-name 
+		(read-file-name "Test directory or file: "
+				(pytest-current-root))))
+	(flags (read-from-minibuffer "py.test flags: ")))
+    (run-pytest tests flags)))
 
 
 ;;; Utility functions
@@ -206,6 +214,9 @@
   (reduce '(lambda (x y) (or x y))
           (mapcar (lambda (d) (member d (directory-files dirname)))
                   pytest-project-root-files)))
+
+(defun pytest-current-root ()
+  (file-name-directory (expand-file-name (buffer-file-name))))
 
 (provide 'pytest)
 
