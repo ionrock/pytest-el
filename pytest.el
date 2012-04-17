@@ -216,7 +216,9 @@ file/dir"
                   pytest-project-root-files)))
 
 (defun pytest-current-root ()
-  (file-name-directory (expand-file-name (buffer-file-name))))
+  (if (not (buffer-file-name))
+      (expand-file-name default-directory)
+    (file-name-directory (expand-file-name (buffer-file-name)))))
 
 (provide 'pytest)
 
