@@ -72,7 +72,7 @@
   "A function used to determine the directory the tests will be
   run from.")
 
-(defcustom pytest-global-name "pytest"
+(defcustom pytest-global-name "py.test"
   "The name of the py.test executable")
 
 (defcustom pytest-cmd-flags "-x"
