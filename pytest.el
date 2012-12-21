@@ -61,7 +61,7 @@
 ;;             (local-set-key "\C-cpm" 'pytest-pdb-module)
 ;;             (local-set-key "\C-cp." 'pytest-pdb-one)))
 
-(defcustom pytest-project-names '("runtests.py")
+(defcustom pytest-project-names '("runtests")
   "The name of the script that starts the tests")
 
 (defcustom pytest-project-root-files '("setup.py" ".hg" ".git")
@@ -74,12 +74,14 @@
 
 (defcustom pytest-global-name "py.test"
   "The name of the py.test executable")
+(put 'pytest-global-name 'safe-local-variable 'stringp)
 
 (defcustom pytest-cmd-flags "-x"
   "These are the flags passed to the pytest runner")
   
 (defun run-pytest (&optional tests flags)
   "run pytest"
+  (virtualenv-hack-dir-local-variables)
   (let* ((pytest (pytest-find-test-runner))
          (where (pytest-find-project-root))
          (tnames (if tests tests ""))
@@ -149,17 +151,15 @@ file/dir"
 
 ;;; Utility functions
 (defun pytest-find-test-runner ()
-  (message
-   (let ((result
-          (reduce '(lambda (x y) (or x y))
-		  (mapcar 'pytest-find-test-runner-names pytest-project-names))))
-     (if result
-         result
-       pytest-global-name))))
+  (let ((result
+	 (reduce '(lambda (x y) (or x y))
+		 (mapcar 'pytest-find-test-runner-names pytest-project-names))))
+    (if result
+	result
+      pytest-global-name)))
 
 (defun pytest-find-test-runner-names (runner)
   "find eggs/bin/test in a parent dir of current buffer's file"
-  (message (concat "looking for " runner))
   (pytest-find-test-runner-in-dir-named
    (file-name-directory buffer-file-name) runner))
 
