@@ -25,18 +25,18 @@
 ;; In your emacs config:
 ;;
 ;;   (require 'pytest)
-;; 
+;;
 ;; If you don't use a global installation of py.test (ie in
 ;; virtualenv) then add something like the following that points to
 ;; either the non-global version or a test runner script.:
 ;;
 ;;   (add-to-list 'pytest-project-names "my/crazy/runner")
-;; 
+;;
 ;; You can generate a script with py.test:
 ;;
 ;;   py.test --genscript=run-tests.py
 
-;; Another option is if your global pytest isn't called "pytest" is to 
+;; Another option is if your global pytest isn't called "pytest" is to
 ;; redefine pytest-global-name to be the command that should be used.
 
 ;; By default, the root of a project is found by looking for any of the files
@@ -78,19 +78,19 @@
 
 (defcustom pytest-cmd-flags "-x"
   "These are the flags passed to the pytest runner")
-  
+
 (defun run-pytest (&optional tests flags)
   "run pytest"
   (virtualenv-hack-dir-local-variables)
   (let* ((pytest (pytest-find-test-runner))
          (where (pytest-find-project-root))
          (tnames (if tests tests ""))
-	 (cmd-flags (if flags flags pytest-cmd-flags)))
+     (cmd-flags (if flags flags pytest-cmd-flags)))
     (funcall '(lambda (command)
-		(compilation-start command nil
-				   (lambda (mode) (concat "*pytest*"))))
-	     (format "cd %s && %s %s %s"
-		     where (pytest-find-test-runner) cmd-flags tnames))))
+        (compilation-start command nil
+                   (lambda (mode) (concat "*pytest*"))))
+         (format "cd %s && %s %s %s"
+             where (pytest-find-test-runner) cmd-flags tnames))))
 
 ;;; Run entire test suite
 (defun pytest-all (&optional flags)
@@ -100,7 +100,7 @@
 
 (defun pytest-failed ()
   (interactive)
-  (pytest-all "-x -k "))
+  (pytest-all "-x "))
 
 (defun pytest-pdb-all ()
   (interactive)
@@ -110,7 +110,7 @@
 (defun pytest-directory (&optional flags)
   "run pytest on all the files in the current buffer"
   (interactive)
-  (run-pytest (file-name-directory buffer-file-name) flags)) 
+  (run-pytest (file-name-directory buffer-file-name) flags))
 
 (defun pytest-pdb-directory (&optional flags)
   "run pytest on all the files in the current buffer"
@@ -132,7 +132,7 @@
   "run pytest (via eggs/bin/test) on testable thing
  at point in current buffer"
   (interactive)
-  (run-pytest (format (concat flags "-k %s %s") (pytest-py-testable) buffer-file-name) ))
+  (run-pytest (format (concat flags "%s") (pytest-py-testable))))
 
 (defun pytest-pdb-one ()
   (interactive)
@@ -142,20 +142,20 @@
   "Run the tests interactively asking for the test flags and
 file/dir"
   (interactive)
-  (let ((tests (expand-file-name 
-		(read-file-name "Test directory or file: "
-				(pytest-current-root))))
-	(flags (read-from-minibuffer "py.test flags: ")))
+  (let ((tests (expand-file-name
+        (read-file-name "Test directory or file: "
+                (pytest-current-root))))
+    (flags (read-from-minibuffer "py.test flags: ")))
     (run-pytest tests flags)))
 
 
 ;;; Utility functions
 (defun pytest-find-test-runner ()
   (let ((result
-	 (reduce '(lambda (x y) (or x y))
-		 (mapcar 'pytest-find-test-runner-names pytest-project-names))))
+     (reduce '(lambda (x y) (or x y))
+         (mapcar 'pytest-find-test-runner-names pytest-project-names))))
     (if result
-	result
+    result
       pytest-global-name)))
 
 (defun pytest-find-test-runner-names (runner)
@@ -172,14 +172,19 @@ file/dir"
           runner)))))
 
 (defun pytest-py-testable ()
+  "Create a path to a test. This uses the `::` delimiter between the
+filename, class and method in order to find the specific test
+case. This requires pytest >= 1.2."
   (let* ((inner-obj (inner-testable))
          (outer (outer-testable))
          ;; elisp can't return multiple values
          (outer-def (car outer))
          (outer-obj (cdr outer)))
-    (cond ((equal outer-def "def") outer-obj)
-          ((equal inner-obj outer-obj) outer-obj)
-          (t (format "%s.%s" outer-obj inner-obj)))))
+    (concat
+     (buffer-file-name)
+     (cond ((equal outer-def "def") (format "::%s" outer-obj))
+       ((equal inner-obj outer-obj) (format "::%s" outer-obj))
+       (t (format "::%s::%s" outer-obj inner-obj))))))
 
 (defun inner-testable ()
   "Finds the function name for pytest-one"
@@ -195,7 +200,6 @@ file/dir"
      "^\\(class\\|def\\)[ \t]+\\([a-zA-Z0-9_]+\\)" nil t)
     (let ((result
             (buffer-substring-no-properties (match-beginning 2) (match-end 2))))
-
       (cons
        (buffer-substring-no-properties (match-beginning 1) (match-end 1))
        result))))
