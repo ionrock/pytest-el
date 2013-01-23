@@ -84,13 +84,14 @@
   (virtualenv-hack-dir-local-variables)
   (let* ((pytest (pytest-find-test-runner))
          (where (pytest-find-project-root))
-         (tnames (if tests tests ""))
-     (cmd-flags (if flags flags pytest-cmd-flags)))
+         (tnames (if tests (mapconcat (lambda (test) (substring test (string-width where)))
+                                      (split-string tests) " ") ""))
+         (cmd-flags (if flags flags pytest-cmd-flags)))
     (funcall '(lambda (command)
-        (compilation-start command nil
-                   (lambda (mode) (concat "*pytest*"))))
-         (format "cd %s && %s %s %s"
-             where (pytest-find-test-runner) cmd-flags tnames))))
+                (compilation-start command nil
+                                   (lambda (mode) (concat "*pytest*"))))
+             (format "cd %s && %s %s %s"
+                     where (pytest-find-test-runner) cmd-flags tnames))))
 
 ;;; Run entire test suite
 (defun pytest-all (&optional flags)
