@@ -133,7 +133,7 @@
   "run pytest (via eggs/bin/test) on testable thing
  at point in current buffer"
   (interactive)
-  (run-pytest (format (concat flags "%s") (pytest-py-testable))))
+  (run-pytest buffer-file-name (format (concat flags " -k%s") (pytest-py-testable))))
 
 (defun pytest-pdb-one ()
   (interactive)
