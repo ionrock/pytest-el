@@ -15,14 +15,14 @@
 
 ;;; Commentary:
 ;; This gives a bunch of functions that handle running pytest on a
-;; particular buffer or part of a buffer. This started as a direct
-;; port of nosemacs (https://bitbucket.org/durin42/nosemacs). A
+;; particular buffer or part of a buffer.  This started as a direct
+;; port of nosemacs (https://bitbucket.org/durin42/nosemacs).  A
 ;; special thanks to Jason Pellerin and Augie Fackler for writing
 ;; nose.el.
 
 ;;; Installation
 
-;; In your emacs config:
+;; In your Emacs config:
 ;;
 ;;   (require 'pytest)
 ;;
@@ -40,7 +40,7 @@
 ;; redefine pytest-global-name to be the command that should be used.
 
 ;; By default, the root of a project is found by looking for any of the files
-;; 'setup.py', '.hg' and '.git'. You can add files to check for to the file
+;; 'setup.py', '.hg' and '.git'.  You can add files to check for to the file
 ;; list:
 ;;
 ;; ; (add-to-list 'pytest-project-root-files "something")
@@ -61,93 +61,95 @@
 ;;             (local-set-key "\C-cpm" 'pytest-pdb-module)
 ;;             (local-set-key "\C-cp." 'pytest-pdb-one)))
 
+;;; Code:
+
 (defcustom pytest-project-names '("runtests")
-  "The name of the script that starts the tests")
+  "The name of the script that starts the tests.")
 
 (defcustom pytest-project-root-files '("setup.py" ".hg" ".git")
-  "Names of files or directories that signify the root of a
-  project")
+  "Names of files or directories that signify the root of a project.")
 
 (defcustom pytest-project-root-test 'pytest-project-root
-  "A function used to determine the directory the tests will be
-  run from.")
+  "A function used to determine the directory the tests will be run from.")
 
 (defcustom pytest-global-name "py.test"
-  "The name of the py.test executable")
+  "The name of the py.test executable.")
 (put 'pytest-global-name 'safe-local-variable 'stringp)
 
-(defcustom pytest-cmd-flags "-x"
-  "These are the flags passed to the pytest runner")
+(defcustom pytest-cmd-flags "-x -s"
+  "These are the flags passed to the pytest runner.")
 
-(defun run-pytest (&optional tests flags)
-  "run pytest"
-  (virtualenv-hack-dir-local-variables)
+(defun pytest-run (&optional tests flags)
+  "Run pytest.
+Optional argument TESTS Tests to run.
+Optional argument FLAGS py.test command line flags."
+  (interactive "fTest directory or file: \nspy.test flags: ")
   (let* ((pytest (pytest-find-test-runner))
-         (where (pytest-find-project-root))
+         (where (if tests (pytest-find-project-root (file-name-directory tests)) (pytest-find-project-root)))
          (tnames (if tests (mapconcat (lambda (test) (substring test (string-width where)))
                                       (split-string tests) " ") ""))
          (cmd-flags (if flags flags pytest-cmd-flags)))
     (funcall '(lambda (command)
-                (compilation-start command nil
+                (compilation-start command t
                                    (lambda (mode) (concat "*pytest*"))))
              (format "cd %s && %s %s %s"
-                     where (pytest-find-test-runner) cmd-flags tnames))))
+                     where (pytest-find-test-runner) cmd-flags tnames))
+    (with-current-buffer (get-buffer "*pytest*")
+      (inferior-python-mode))))
 
 ;;; Run entire test suite
 (defun pytest-all (&optional flags)
-  "run all tests"
+  "Run all tests.
+Optional argument FLAGS py.test command line flags."
   (interactive)
-  (run-pytest nil flags))
+  (pytest-run nil flags))
 
 (defun pytest-failed ()
+  "Quit test suite on first failed test."
   (interactive)
   (pytest-all "-x "))
 
 (defun pytest-pdb-all ()
+  "Start pdb on error."
   (interactive)
   (pytest-all "--pdb -x"))
 
 ;;; Run all the tests in a directory (and its child directories)
 (defun pytest-directory (&optional flags)
-  "run pytest on all the files in the current buffer"
+  "Run pytest on all the files in the current buffer.
+Optional argument FLAGS py.test command line flags."
   (interactive)
-  (run-pytest (file-name-directory buffer-file-name) flags))
+  (pytest-run (file-name-directory buffer-file-name) flags))
 
 (defun pytest-pdb-directory (&optional flags)
-  "run pytest on all the files in the current buffer"
+  "Run pytest on all the files in the current buffer.
+Optional argument FLAGS py.test command line flags."
   (interactive)
   (pytest-directory "--pdb -x "))
 
 ;;; Run all the tests in a file
 (defun pytest-module (&optional flags)
-  "run pytest (via eggs/bin/test) on current buffer"
+  "Run pytest (via eggs/bin/test) on current buffer.
+Optional argument FLAGS py.test command line flags."
   (interactive)
-  (run-pytest buffer-file-name flags))
+  (pytest-run buffer-file-name flags))
 
 (defun pytest-pdb-module ()
+  "Run pytest on a module, enter debugger on error."
   (interactive)
   (pytest-module "--pdb -x"))
 
 ;;; Run the test surrounding the current point
 (defun pytest-one (&optional flags)
-  "run pytest (via eggs/bin/test) on testable thing
- at point in current buffer"
+  "Run pytest (via eggs/bin/test) on testable thing at point in current buffer.
+Optional argument FLAGS py.test command line flags."
   (interactive)
-  (run-pytest (format (concat flags "%s") (pytest-py-testable))))
+  (pytest-run (format (concat flags "%s") (pytest-py-testable))))
 
 (defun pytest-pdb-one ()
+  "Run pytest on testable thing at point, enter debugger on error."
   (interactive)
   (pytest-one "-x "))
-
-(defun pytest-run ()
-  "Run the tests interactively asking for the test flags and
-file/dir"
-  (interactive)
-  (let ((tests (expand-file-name
-        (read-file-name "Test directory or file: "
-                (pytest-current-root))))
-    (flags (read-from-minibuffer "py.test flags: ")))
-    (run-pytest tests flags)))
 
 
 ;;; Utility functions
@@ -160,7 +162,7 @@ file/dir"
       pytest-global-name)))
 
 (defun pytest-find-test-runner-names (runner)
-  "find eggs/bin/test in a parent dir of current buffer's file"
+  "Find eggs/bin/test in a parent dir of current buffer's file."
   (pytest-find-test-runner-in-dir-named
    (file-name-directory buffer-file-name) runner))
 
@@ -173,11 +175,12 @@ file/dir"
           runner)))))
 
 (defun pytest-py-testable ()
-  "Create a path to a test. This uses the `::` delimiter between the
+  "Create a path to a test.
+This uses the `::` delimiter between the
 filename, class and method in order to find the specific test
-case. This requires pytest >= 1.2."
-  (let* ((inner-obj (inner-testable))
-         (outer (outer-testable))
+case.  This requires pytest >= 1.2."
+  (let* ((inner-obj (pytest-inner-testable))
+         (outer (pytest-outer-testable))
          ;; elisp can't return multiple values
          (outer-def (car outer))
          (outer-obj (cdr outer)))
@@ -187,15 +190,15 @@ case. This requires pytest >= 1.2."
        ((equal inner-obj outer-obj) (format "::%s" outer-obj))
        (t (format "::%s::%s" outer-obj inner-obj))))))
 
-(defun inner-testable ()
-  "Finds the function name for pytest-one"
+(defun pytest-inner-testable ()
+  "Find the function name for `pytest-one'."
   (save-excursion
     (re-search-backward
      "^ \\{0,4\\}\\(class\\|def\\)[ \t]+\\([a-zA-Z0-9_]+\\)" nil t)
     (buffer-substring-no-properties (match-beginning 2) (match-end 2))))
 
-(defun outer-testable ()
-  "Finds the class for the pytest-one"
+(defun pytest-outer-testable ()
+  "Find the class for the `pytest-one'."
   (save-excursion
     (re-search-backward
      "^\\(class\\|def\\)[ \t]+\\([a-zA-Z0-9_]+\\)" nil t)
