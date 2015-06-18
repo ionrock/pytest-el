@@ -1,0 +1,75 @@
+* pytest.el
+
+`pytest.el` provides a set of functions that handle running pytest on a
+particular buffer or part of a buffer.  This started as a direct
+port of nosemacs (https://bitbucket.org/durin42/nosemacs).  A
+special thanks to Jason Pellerin and Augie Fackler for writing
+nose.el.
+
+** Installation
+
+In your Emacs config:
+
+#+BEGIN_SRC elisp
+  (require 'pytest)
+#+END_SRC
+
+If you don't use a global installation of py.test (ie in
+virtualenv) then add something like the following that points to
+either the non-global version or a test runner script.
+
+#+BEGIN_SRC elisp
+  (add-to-list 'pytest-project-names "my/crazy/runner")
+#+END_SRC
+
+For example, you can generate a script with py.test:
+
+#+BEGIN_SRC sh
+  py.test --genscript=run-tests.py
+#+END_SRC
+
+A much better pattern is to use a `.dir-locals.el` file to define the
+test runner executable. For example, I use a small library called [[https://github.com/ionrock/xe][xe]]
+for finding the current project's virtualenv. Here is what
+`.dir-locals.el` would look like, using xe.
+
+#+BEGIN_SRC elisp
+  ;;; Directory Local Variables
+  ;;; For more information see (info "(emacs) Directory Variables")
+
+  ((python-mode
+    (pytest-global-name . "xe test")
+    (pytest-cmd-flags . "")))
+#+END_SRC
+
+By default, the root of a project is found by looking for any of the files
+'setup.py', '.hg' and '.git'.  You can add files to check for to the file
+list:
+
+#+BEGIN_SRC elisp
+ (add-to-list 'pytest-project-root-files ".bzr")
+#+END_SRC
+
+You can also change the project root test to detect in some other way
+whether a directory is the project root:
+
+#+BEGIN_SRC elisp
+  (setq pytest-project-root-test (lambda (dirname) (equal dirname "foo")))
+#+END_SRC
+
+** Key bindings
+
+Here are some suggested keybindings for running the tests within your
+python-mode buffers.
+
+#+BEGIN_SRC elisp
+  (add-hook 'python-mode-hook
+            (lambda ()
+              (local-set-key "\C-ca" 'pytest-all)
+              (local-set-key "\C-cm" 'pytest-module)
+              (local-set-key "\C-c." 'pytest-one)
+              (local-set-key "\C-cd" 'pytest-directory)
+              (local-set-key "\C-cpa" 'pytest-pdb-all)
+              (local-set-key "\C-cpm" 'pytest-pdb-module)
+              (local-set-key "\C-cp." 'pytest-pdb-one)))
+#+END_SRC
