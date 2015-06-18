@@ -85,9 +85,12 @@ Optional argument TESTS Tests to run.
 Optional argument FLAGS py.test command line flags."
   (interactive "fTest directory or file: \nspy.test flags: ")
   (let* ((pytest (pytest-find-test-runner))
-         (where (if tests (pytest-find-project-root (file-name-directory tests)) (pytest-find-project-root)))
-         (tnames (if tests (mapconcat (lambda (test) (substring test (string-width where)))
-                                      (split-string tests) " ") ""))
+         (where (if tests
+		    (pytest-find-project-root (file-name-directory tests))
+		  (pytest-find-project-root)))
+         (tnames (if tests
+		     (mapconcat (lambda (test) (substring test (string-width where)))
+				(split-string tests) " ") ""))
          (cmd-flags (if flags flags pytest-cmd-flags)))
     (funcall '(lambda (command)
                 (compilation-start command t
