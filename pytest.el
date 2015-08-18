@@ -91,11 +91,16 @@ Optional argument FLAGS py.test command line flags."
          (tnames (if tests
 		     (mapconcat (lambda (test) (substring test (string-width where)))
 				(split-string tests) " ") ""))
-         (cmd-flags (if flags flags pytest-cmd-flags)))
+         (cmd-flags (if flags flags pytest-cmd-flags))
+         (cmd-format-string (if (= 0 (call-process-shell-command "ps -p %self" nil nil))
+                                ;; Fish shell
+                                "cd %s; and %s %s %s"
+                            ;; Most all other shells.
+                            "cd %s && %s %s %s")))
     (funcall '(lambda (command)
                 (compilation-start command t
                                    (lambda (mode) (concat "*pytest*"))))
-             (format "cd %s && %s %s %s"
+             (format cmd-format-string
                      where (pytest-find-test-runner) cmd-flags tnames))
     (with-current-buffer (get-buffer "*pytest*")
       (inferior-python-mode))))
