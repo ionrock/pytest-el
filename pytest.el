@@ -91,14 +91,16 @@ Optional argument FLAGS py.test command line flags."
          (tnames (if tests
 		     (mapconcat (lambda (test) (substring test (string-width where)))
 				(split-string tests) " ") ""))
-         (cmd-flags (if flags flags pytest-cmd-flags)))
+         (cmd-flags (if flags flags pytest-cmd-flags))
+	 (use-comint (s-contains? "pdb" cmd-flags)))
     (funcall '(lambda (command)
-                (compilation-start command t
+                (compilation-start command use-comint
                                    (lambda (mode) (concat "*pytest*"))))
              (format "cd %s && %s %s %s"
                      where (pytest-find-test-runner) cmd-flags tnames))
-    (with-current-buffer (get-buffer "*pytest*")
-      (inferior-python-mode))))
+    (if use-comint
+	(with-current-buffer (get-buffer "*pytest*")
+	  (inferior-python-mode)))))
 
 ;;; Run entire test suite
 (defun pytest-all (&optional flags)
