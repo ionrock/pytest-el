@@ -7,6 +7,7 @@
 ;; Version: 0.2.1
 ;; Keywords: pytest python testing
 ;; URL: https://github.com/ionrock/pytest-el
+;; Package-Requires: ((s "1.9.0"))
 ;; Created: 07 Oct 2011
 
 ;; This file is NOT part of GNU Emacs.
@@ -62,6 +63,9 @@
 ;;             (local-set-key "\C-cp." 'pytest-pdb-one)))
 
 ;;; Code:
+(require 's)
+(require 'cl)
+(require 'python)
 
 (defcustom pytest-project-names '("runtests")
   "The name of the script that starts the tests.")
