@@ -97,9 +97,9 @@ Optional argument FLAGS py.test command line flags."
 				(split-string tests) " ") ""))
          (cmd-flags (if flags flags pytest-cmd-flags))
 	 (use-comint (s-contains? "pdb" cmd-flags)))
-    (funcall '(lambda (command)
-                (compilation-start command use-comint
-                                   (lambda (mode) (concat "*pytest*"))))
+    (funcall #'(lambda (command)
+                 (compilation-start command use-comint
+                                    (lambda (mode) (concat "*pytest*"))))
              (format "cd %s && %s %s %s"
                      where (pytest-find-test-runner) cmd-flags tnames))
     (if use-comint
