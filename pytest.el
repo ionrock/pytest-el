@@ -6,7 +6,7 @@
 
 ;; Version: 0.2.1
 ;; Keywords: pytest python testing
-;; URL: http://bitbucket.org/elarson/pytest.el
+;; URL: https://github.com/ionrock/pytest-el
 ;; Created: 07 Oct 2011
 
 ;; This file is NOT part of GNU Emacs.
