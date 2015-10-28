@@ -87,6 +87,24 @@
 (defcustom pytest-cmd-flags "-x -s"
   "These are the flags passed to the pytest runner.")
 
+(defcustom pytest-cmd-format-string "cd %s && %s %s %s"
+  "Format string used to run the py.test command.")
+
+(defun pytest-cmd-format (format-string working-directory test-runner command-flags test-names)
+  "Create the string used for running the py.test command.
+FORMAT-STRING is a template string used by (format) to compose
+the py.test command invocation.  The string should contain enough
+'%s' placeholders to satisfy the remaining arguments to this
+function.
+WORKING-DIRECTORY is the directory to run py.test in.
+TEST-RUNNER is the name of the command to run.
+COMMAND-FLAGS are the flags to pass into py.test.
+TEST-NAMES are the names of the tests to run.
+
+The function returns a string used to run the py.test command.  Here's an example:
+'cd WORKING-DIRECTORY && TEST-RUNNER COMMAND-FLAGS TEST-NAMES'"
+  (format format-string working-directory test-runner command-flags test-names))
+
 (defun pytest-run (&optional tests flags)
   "Run pytest.
 Optional argument TESTS Tests to run.
@@ -100,12 +118,11 @@ Optional argument FLAGS py.test command line flags."
 		     (mapconcat (lambda (test) (substring test (string-width where)))
 				(split-string tests) " ") ""))
          (cmd-flags (if flags flags pytest-cmd-flags))
-	 (use-comint (s-contains? "pdb" cmd-flags)))
+         (use-comint (s-contains? "pdb" cmd-flags)))
     (funcall #'(lambda (command)
                  (compilation-start command use-comint
                                     (lambda (mode) (concat "*pytest*"))))
-             (format "cd %s && %s %s %s"
-                     where (pytest-find-test-runner) cmd-flags tnames))
+             (pytest-cmd-format pytest-cmd-format-string where pytest cmd-flags tnames))
     (if use-comint
 	(with-current-buffer (get-buffer "*pytest*")
 	  (inferior-python-mode)))))
