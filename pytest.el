@@ -67,6 +67,10 @@
 (require 'cl)
 (require 'python)
 
+(defgroup pytest nil
+  "Easy Python test running in Emacs"
+  :group 'python)
+
 (defcustom pytest-project-names '("runtests")
   "The name of the script that starts the tests.")
 
