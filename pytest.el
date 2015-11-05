@@ -145,7 +145,7 @@ Optional argument FLAGS py.test command line flags."
 (defun pytest-pdb-all ()
   "Start pdb on error."
   (interactive)
-  (pytest-all "--pdb -x"))
+  (pytest-all (concat "--pdb " pytest-cmd-flags)))
 
 ;;; Run all the tests in a directory (and its child directories)
 ;;;###autoload
@@ -160,7 +160,7 @@ Optional argument FLAGS py.test command line flags."
   "Run pytest on all the files in the current buffer.
 Optional argument FLAGS py.test command line flags."
   (interactive)
-  (pytest-directory "--pdb -x "))
+  (pytest-directory (concat "--pdb " pytest-cmd-flags)))
 
 ;;; Run all the tests in a file
 ;;;###autoload
@@ -174,7 +174,7 @@ Optional argument FLAGS py.test command line flags."
 (defun pytest-pdb-module ()
   "Run pytest on a module, enter debugger on error."
   (interactive)
-  (pytest-module "--pdb -x"))
+  (pytest-module (concat "--pdb " pytest-cmd-flags)))
 
 ;;; Run the test surrounding the current point
 ;;;###autoload
@@ -182,13 +182,13 @@ Optional argument FLAGS py.test command line flags."
   "Run pytest (via eggs/bin/test) on testable thing at point in current buffer.
 Optional argument FLAGS py.test command line flags."
   (interactive)
-  (pytest-run (format (concat flags "%s") (pytest-py-testable))))
+  (pytest-run (format "%s" (pytest-py-testable)) flags))
 
 ;;;###autoload
 (defun pytest-pdb-one ()
   "Run pytest on testable thing at point, enter debugger on error."
   (interactive)
-  (pytest-one "-x "))
+  (pytest-one (concat "--pdb " pytest-cmd-flags)))
 
 
 ;;; Utility functions
