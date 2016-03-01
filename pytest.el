@@ -87,7 +87,7 @@
 (defcustom pytest-cmd-flags "-x -s"
   "These are the flags passed to the pytest runner.")
 
-(defcustom pytest-cmd-format-string "cd %s && %s %s %s"
+(defcustom pytest-cmd-format-string "cd '%s' && %s %s %s"
   "Format string used to run the py.test command.")
 
 (defun pytest-cmd-format (format-string working-directory test-runner command-flags test-names)
@@ -105,6 +105,10 @@ The function returns a string used to run the py.test command.  Here's an exampl
 'cd WORKING-DIRECTORY && TEST-RUNNER COMMAND-FLAGS TEST-NAMES'"
   (format format-string working-directory test-runner command-flags test-names))
 
+(defun pytest-check-test-file (path)
+  (if (not (file-exists-p path))
+      (error (format "'%s' is not an extant file." path))))
+
 (defun pytest-run (&optional tests flags)
   "Run pytest.
 Optional argument TESTS Tests to run.
@@ -112,11 +116,14 @@ Optional argument FLAGS py.test command line flags."
   (interactive "fTest directory or file: \nspy.test flags: ")
   (let* ((pytest (pytest-find-test-runner))
          (where (if tests
-		    (pytest-find-project-root (file-name-directory tests))
-		  (pytest-find-project-root)))
-         (tnames (if tests
-		     (mapconcat (lambda (test) (substring test (string-width where)))
-				(split-string tests) " ") ""))
+                    (let ((testpath (if (listp tests) (car tests) tests)))
+                      (pytest-find-project-root (file-name-directory testpath)))
+                  (pytest-find-project-root)))
+         (tests (cond ((not tests) "")
+                      ((listp tests) tests)
+                      ((stringp tests) (split-string tests))))
+         (_ (mapc 'pytest-check-test-file tests))
+         (tnames (mapconcat (apply-partially 'format "'%s'") tests " "))
          (cmd-flags (if flags flags pytest-cmd-flags))
          (use-comint (s-contains? "pdb" cmd-flags)))
     (funcall #'(lambda (command)
