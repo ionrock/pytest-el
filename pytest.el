@@ -240,7 +240,7 @@ case.  This requires pytest >= 1.2."
   "Find the function name for `pytest-one'."
   (save-excursion
     (re-search-backward
-     "^ \\{0,4\\}\\(class\\|def\\)[ \t]+\\([a-zA-Z0-9_]+\\)" nil t)
+     "^[ \t]\\{0,4\\}\\(class\\|def\\)[ \t]+\\([a-zA-Z0-9_]+\\)" nil t)
     (buffer-substring-no-properties (match-beginning 2) (match-end 2))))
 
 (defun pytest-outer-testable ()
