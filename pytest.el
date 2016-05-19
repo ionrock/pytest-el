@@ -87,7 +87,7 @@
 (defcustom pytest-cmd-flags "-x -s"
   "These are the flags passed to the pytest runner.")
 
-(defcustom pytest-cmd-format-string "cd '%s' && %s %s %s"
+(defcustom pytest-cmd-format-string "cd '%s' && %s %s '%s'"
   "Format string used to run the py.test command.")
 
 (defun pytest-cmd-format (format-string working-directory test-runner command-flags test-names)
