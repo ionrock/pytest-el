@@ -87,7 +87,7 @@
 (defcustom pytest-cmd-flags "-x -s"
   "These are the flags passed to the pytest runner.")
 
-(defcustom pytest-cmd-format-string "cd '%s' && %s %s %s"
+(defcustom pytest-cmd-format-string "cd '%s' && %s %s '%s'"
   "Format string used to run the py.test command.")
 
 (defun pytest-cmd-format (format-string working-directory test-runner command-flags test-names)
@@ -119,7 +119,7 @@ Optional argument FLAGS py.test command line flags."
                     (let ((testpath (if (listp tests) (car tests) tests)))
                       (pytest-find-project-root (file-name-directory testpath)))
                   (pytest-find-project-root)))
-         (tests (cond ((not tests) "")
+         (tests (cond ((not tests) (list "."))
                       ((listp tests) tests)
                       ((stringp tests) (split-string tests))))
          (_ (mapc 'pytest-check-test-file tests))
