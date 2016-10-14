@@ -122,7 +122,6 @@ Optional argument FLAGS py.test command line flags."
          (tests (cond ((not tests) (list "."))
                       ((listp tests) tests)
                       ((stringp tests) (split-string tests))))
-         (_ (mapc 'pytest-check-test-file tests))
          (tnames (mapconcat (apply-partially 'format "'%s'") tests " "))
          (cmd-flags (if flags flags pytest-cmd-flags))
          (use-comint (s-contains? "pdb" cmd-flags)))
