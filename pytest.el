@@ -117,7 +117,7 @@ The function returns a string used to run the py.test command.  Here's an exampl
 Optional argument TESTS Tests to run.
 Optional argument FLAGS py.test command line flags."
   (interactive "fTest directory or file: \nspy.test flags: ")
-  (pytest-start-command (pytest-find-command tests flags)))
+  (pytest-start-command (pytest-get-command tests flags)))
 
 (defun pytest-get-command (tests flags)
   (let* ((pytest (pytest-find-test-runner))
@@ -129,8 +129,8 @@ Optional argument FLAGS py.test command line flags."
                       ((listp tests) tests)
                       ((stringp tests) (split-string tests))))
          (tnames (mapconcat (apply-partially 'format "'%s'") tests " "))
-         (cmd-flags (if flags flags pytest-cmd-flags))
-         (pytest-cmd-format pytest-cmd-format-string where pytest cmd-flags tnames))))
+         (cmd-flags (if flags flags pytest-cmd-flags)))
+    (pytest-cmd-format pytest-cmd-format-string where pytest cmd-flags tnames)))
 
 (defun pytest-start-command(command)
   (let ((use-comint (s-contains? "--pdb" command))
