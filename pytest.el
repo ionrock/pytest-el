@@ -142,11 +142,14 @@ Optional argument FLAGS py.test command line flags."
 	      (with-current-buffer (get-buffer temp-buffer-name)
 	        (inferior-python-mode)))))
 
-(defun pytest-again()
-  "Run the same tests again with the last command."
-  (interactive)
-  (if-let ((command (gethash (pytest-get-temp-buffer-name) pytest-last-commands)))
-      (pytest-run-pytest command)
+(defun pytest-again(&optional edit-command)
+  "Run the same tests again with the last command.
+
+   If EDIT-COMMAND is non-nil, the command can be edited."
+  (interactive "P")
+  (if-let* ((last-command (gethash (pytest-get-temp-buffer-name) pytest-last-commands))
+            (command (if edit-command (read-shell-command "Command: " last-command) last-command)))
+      (pytest-start-command command)
     (error "Pytest has not run before")))
 
 
