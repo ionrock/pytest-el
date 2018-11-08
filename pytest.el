@@ -137,7 +137,7 @@ Optional argument FLAGS py.test command line flags."
         (temp-buffer-name (pytest-get-temp-buffer-name)))
     (puthash temp-buffer-name command pytest-last-commands)
     (compilation-start command use-comint
-                       (lambda (mode) temp-buffer-name))
+                       (lambda (mode) (pytest-get-temp-buffer-name)))
     (if use-comint
 	      (with-current-buffer (get-buffer temp-buffer-name)
 	        (inferior-python-mode)))))
