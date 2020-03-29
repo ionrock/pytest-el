@@ -90,6 +90,9 @@
 (defcustom pytest-cmd-format-string "cd '%s' && %s %s '%s'"
   "Format string used to run the py.test command.")
 
+(defvar pytest-last-commands (make-hash-table :test 'equal)
+  "Last pytest commands by pytest buffer name")
+
 (defun pytest-cmd-format (format-string working-directory test-runner command-flags test-names)
   "Create the string used for running the py.test command.
 FORMAT-STRING is a template string used by (format) to compose
@@ -114,6 +117,9 @@ The function returns a string used to run the py.test command.  Here's an exampl
 Optional argument TESTS Tests to run.
 Optional argument FLAGS py.test command line flags."
   (interactive "fTest directory or file: \nspy.test flags: ")
+  (pytest-start-command (pytest-get-command tests flags)))
+
+(defun pytest-get-command (tests flags)
   (let* ((pytest (pytest-find-test-runner))
          (where (if tests
                     (let ((testpath (if (listp tests) (car tests) tests)))
@@ -123,15 +129,29 @@ Optional argument FLAGS py.test command line flags."
                       ((listp tests) tests)
                       ((stringp tests) (split-string tests))))
          (tnames (mapconcat (apply-partially 'format "'%s'") tests " "))
-         (cmd-flags (if flags flags pytest-cmd-flags))
-         (use-comint (s-contains? "pdb" cmd-flags)))
-    (funcall #'(lambda (command)
-                 (compilation-start command use-comint
-                                    (lambda (mode) (concat (pytest-get-temp-buffer-name)))))
-             (pytest-cmd-format pytest-cmd-format-string where pytest cmd-flags tnames))
+         (cmd-flags (if flags flags pytest-cmd-flags)))
+    (pytest-cmd-format pytest-cmd-format-string where pytest cmd-flags tnames)))
+
+(defun pytest-start-command(command)
+  (let ((use-comint (s-contains? "--pdb" command))
+        (temp-buffer-name (pytest-get-temp-buffer-name)))
+    (puthash temp-buffer-name command pytest-last-commands)
+    (compilation-start command use-comint
+                       (lambda (mode) (pytest-get-temp-buffer-name)))
     (if use-comint
-	(with-current-buffer (get-buffer (pytest-get-temp-buffer-name))
-	  (inferior-python-mode)))))
+	      (with-current-buffer (get-buffer temp-buffer-name)
+	        (inferior-python-mode)))))
+
+(defun pytest-again(&optional edit-command)
+  "Run the same tests again with the last command.
+
+   If EDIT-COMMAND is non-nil, the command can be edited."
+  (interactive "P")
+  (if-let* ((last-command (gethash (pytest-get-temp-buffer-name) pytest-last-commands))
+            (command (if edit-command (read-shell-command "Command: " last-command) last-command)))
+      (pytest-start-command command)
+    (error "Pytest has not run before")))
+
 
 (defun pytest-get-temp-buffer-name ()
   "Get name of temporary buffer.
