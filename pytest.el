@@ -183,6 +183,20 @@ Optional argument FLAGS py.test command line flags."
   (interactive)
   (pytest-all (concat "--pdb " pytest-cmd-flags)))
 
+;;; Run tests that failed last time
+;;;###autoload
+(defun pytest-last-failed (&optional flags)
+  "Run tests that failed last time.
+Optional argument FLAGS py.test command line flags."
+  (interactive)
+  (pytest-all (concat "--last-failed " flags)))
+
+;;;###autoload
+(defun pytest-pdb-last-failed ()
+  "Run tests that failed last time, enger debugger on error."
+  (interactive)
+  (pytest-last-failed (concat "--pdb " pytest-cmd-flags)))
+
 ;;; Run all the tests in a directory (and its child directories)
 ;;;###autoload
 (defun pytest-directory (&optional flags)
