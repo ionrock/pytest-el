@@ -51,6 +51,13 @@
 ;;
 ;; ; (setq pytest-project-root-test (lambda (dirname) (equal dirname "foo")))
 
+;; By default, test paths passed to pytest are absolute paths:
+;; 'cd /project/root && pytest /base/path/relative/path/to/test.py'
+;; Set an optional source root directory:
+;; ; (setq pytest-source-root-dir "/base/path/")
+;; which will set test paths relative to that source root:
+;; 'cd /project/root && pytest relative/path/to/test.py'
+
 ;; Probably also want some keybindings:
 ;; (add-hook 'python-mode-hook
 ;;           (lambda ()
@@ -90,6 +97,9 @@
 (defcustom pytest-cmd-format-string "cd '%s' && %s %s '%s'"
   "Format string used to run the py.test command.")
 
+(defcustom pytest-source-root-dir ""
+  "If set, test paths will be defined relative to this base directory.")
+
 (defvar pytest-last-commands (make-hash-table :test 'equal)
   "Last pytest commands by pytest buffer name")
 
@@ -128,7 +138,7 @@ Optional argument FLAGS py.test command line flags."
          (tests (cond ((not tests) (list "."))
                       ((listp tests) tests)
                       ((stringp tests) (split-string tests))))
-         (tnames (mapconcat (apply-partially 'format "'%s'") tests " "))
+         (tnames (mapconcat (lambda (x) (file-relative-name x pytest-source-root-dir)) tests " "))
          (cmd-flags (if flags flags pytest-cmd-flags)))
     (pytest-cmd-format pytest-cmd-format-string where pytest cmd-flags tnames)))
 
