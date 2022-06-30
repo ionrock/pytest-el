@@ -57,6 +57,34 @@ whether a directory is the project root:
   (setq pytest-project-root-test (lambda (dirname) (equal dirname "foo")))
 #+END_SRC
 
+By default, test paths passed to pytest are absolute paths:
+#+BEGIN_SRC sh
+  cd /project/root && pytest /base/path/relative/path/to/test.py
+#+END_SRC
+
+To override this behavior, set an optional source root directory:
+#+BEGIN_SRC elisp
+  (setq pytest-source-root-dir "/base/path/")
+#+END_SRC
+
+which will set test paths relative to that source root:
+#+BEGIN_SRC sh
+   cd /project/root && pytest relative/path/to/test.py
+#+END_SRC
+
+This will enable individual tests to run correctly in containers that map to different working directories:
+#+BEGIN_SRC elisp
+;;; Directory Local Variables
+;;; For more information see (info "(emacs) Directory Variables")
+
+((python-mode
+  (pytest-global-name . "docker-compose run --rm app pytest")
+  (pytest-cmd-flags . "")
+  (pytest-source-root-dir . "/base/path/")))
+#+END_SRC
+
+
+
 ** Key bindings
 
 Here are some suggested keybindings for running the tests within your
