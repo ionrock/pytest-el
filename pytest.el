@@ -4,7 +4,7 @@
 
 ;; Licensed under the same terms as Emacs.
 
-;; Version: 0.2.1
+;; Version: 0.3.0
 ;; Keywords: pytest python testing
 ;; URL: https://github.com/ionrock/pytest-el
 ;; Package-Requires: ((s "1.9.0"))
