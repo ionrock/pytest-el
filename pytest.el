@@ -97,7 +97,7 @@
 (defcustom pytest-cmd-format-string "cd '%s' && %s %s '%s'"
   "Format string used to run the py.test command.")
 
-(defcustom pytest-source-root-dir ""
+(defcustom pytest-source-root-dir nil
   "If set, test paths will be defined relative to this base directory.")
 
 (defvar pytest-last-commands (make-hash-table :test 'equal)
@@ -138,7 +138,12 @@ Optional argument FLAGS py.test command line flags."
          (tests (cond ((not tests) (list "."))
                       ((listp tests) tests)
                       ((stringp tests) (split-string tests))))
-         (tnames (mapconcat (lambda (x) (file-relative-name x pytest-source-root-dir)) tests " "))
+         (tnames
+          (mapconcat
+           (if pytest-source-root-dir
+               (lambda (x) (file-relative-name x pytest-source-root-dir))
+             (apply-partially 'format "'%s'"))
+           tests " "))
          (cmd-flags (if flags flags pytest-cmd-flags)))
     (pytest-cmd-format pytest-cmd-format-string where pytest cmd-flags tnames)))
 
