@@ -59,31 +59,51 @@ whether a directory is the project root:
 
 By default, test paths passed to pytest are absolute paths:
 #+BEGIN_SRC sh
-  cd /project/root && pytest /base/path/relative/path/to/test.py
+  cd /project/root && pytest /project/root/path/to/test.py
 #+END_SRC
 
-To override this behavior, set an optional source root directory:
+To override this behavior, set an optional base path that will be stripped from test path arguments:
 #+BEGIN_SRC elisp
-  (setq pytest-source-root-dir "/base/path/")
+  (setq pytest-relative-test-paths "/project/root/")
 #+END_SRC
 
-which will set test paths relative to that source root:
+which will set test paths relative to that base path:
 #+BEGIN_SRC sh
-   cd /project/root && pytest relative/path/to/test.py
+   cd /project/root && pytest path/to/test.py
 #+END_SRC
 
 This will enable individual tests to run correctly in containers that map to different working directories:
 #+BEGIN_SRC elisp
+;;; Example dir-locals.el:
 ;;; Directory Local Variables
 ;;; For more information see (info "(emacs) Directory Variables")
 
 ((python-mode
   (pytest-global-name . "docker-compose run --rm app pytest")
   (pytest-cmd-flags . "")
-  (pytest-source-root-dir . "/base/path/")))
+  (pytest-relative-test-paths . "/base/path/")))
 #+END_SRC
 
+An example of why you'd want to apply relative test path arguments is running tests in a docker compose environment for an app that contains multiple sub-projects and those tests are contained within a mounted volume that is a subdirectory of the project root:
+#+BEGIN_SRC shell
+  # project root
+  /project/root/
+  # local app directory
+  /project/root/app
+  # corresponding container app directory mounted in container
+  /opt/app
+  # default full test path outside of container
+  /project/root/app/path/to/test.py
+#+END_SRC
+In that case, running the default command in the container will fail since it does not take into account the container directory structure:
+#+BEGIN_SRC sh
+    cd /path/to/project/root && docker-compose run --rm app pytest /path/to/docker/mount/volume/relative/path/to/test.py
+#+END_SRC
 
+but passing in a relative test path should run:
+#+BEGIN_SRC sh
+  cd /path/to/project/root && docker-compose run --rm app pytest relative/path/to/test.py
+#+END_SRC
 
 ** Key bindings
 
