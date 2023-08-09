@@ -27,15 +27,15 @@
 ;;
 ;;   (require 'pytest)
 ;;
-;; If you don't use a global installation of py.test (ie in
+;; If you don't use a global installation of pytest (ie in
 ;; virtualenv) then add something like the following that points to
 ;; either the non-global version or a test runner script.:
 ;;
 ;;   (add-to-list 'pytest-project-names "my/crazy/runner")
 ;;
-;; You can generate a script with py.test:
+;; You can generate a script with pytest:
 ;;
-;;   py.test --genscript=run-tests.py
+;;   pytest --genscript=run-tests.py
 
 ;; Another option is if your global pytest isn't called "pytest" is to
 ;; redefine pytest-global-name to be the command that should be used.
@@ -80,31 +80,31 @@
 (defcustom pytest-project-root-test 'pytest-project-root
   "A function used to determine the directory the tests will be run from.")
 
-(defcustom pytest-global-name "py.test"
-  "The name of the py.test executable.")
+(defcustom pytest-global-name "pytest"
+  "The name of the pytest executable.")
 (put 'pytest-global-name 'safe-local-variable 'stringp)
 
 (defcustom pytest-cmd-flags "-x -s"
   "These are the flags passed to the pytest runner.")
 
 (defcustom pytest-cmd-format-string "cd '%s' && %s %s '%s'"
-  "Format string used to run the py.test command.")
+  "Format string used to run the pytest command.")
 
 (defvar pytest-last-commands (make-hash-table :test 'equal)
   "Last pytest commands by pytest buffer name")
 
 (defun pytest-cmd-format (format-string working-directory test-runner command-flags test-names)
-  "Create the string used for running the py.test command.
+  "Create the string used for running the pytest command.
 FORMAT-STRING is a template string used by (format) to compose
-the py.test command invocation.  The string should contain enough
+the pytest command invocation.  The string should contain enough
 '%s' placeholders to satisfy the remaining arguments to this
 function.
-WORKING-DIRECTORY is the directory to run py.test in.
+WORKING-DIRECTORY is the directory to run pytest in.
 TEST-RUNNER is the name of the command to run.
-COMMAND-FLAGS are the flags to pass into py.test.
+COMMAND-FLAGS are the flags to pass into pytest.
 TEST-NAMES are the names of the tests to run.
 
-The function returns a string used to run the py.test command.  Here's an example:
+The function returns a string used to run the pytest command.  Here's an example:
 'cd WORKING-DIRECTORY && TEST-RUNNER COMMAND-FLAGS TEST-NAMES'"
   (format format-string working-directory test-runner command-flags test-names))
 
@@ -115,8 +115,8 @@ The function returns a string used to run the py.test command.  Here's an exampl
 (defun pytest-run (&optional tests flags)
   "Run pytest.
 Optional argument TESTS Tests to run.
-Optional argument FLAGS py.test command line flags."
-  (interactive "fTest directory or file: \nspy.test flags: ")
+Optional argument FLAGS pytest command line flags."
+  (interactive "fTest directory or file: \nspytest flags: ")
   (pytest-start-command (pytest-get-command tests flags)))
 
 (defun pytest-get-command (tests flags)
@@ -167,7 +167,7 @@ This allows one test buffer per project."
 ;;;###autoload
 (defun pytest-all (&optional flags)
   "Run all tests.
-Optional argument FLAGS py.test command line flags."
+Optional argument FLAGS pytest command line flags."
   (interactive)
   (pytest-run nil flags))
 
@@ -187,7 +187,7 @@ Optional argument FLAGS py.test command line flags."
 ;;;###autoload
 (defun pytest-last-failed (&optional flags)
   "Run tests that failed last time.
-Optional argument FLAGS py.test command line flags."
+Optional argument FLAGS pytest command line flags."
   (interactive)
   (pytest-all (concat "--last-failed " flags)))
 
@@ -201,14 +201,14 @@ Optional argument FLAGS py.test command line flags."
 ;;;###autoload
 (defun pytest-directory (&optional flags)
   "Run pytest on all the files in the current buffer.
-Optional argument FLAGS py.test command line flags."
+Optional argument FLAGS pytest command line flags."
   (interactive)
   (pytest-run (file-name-directory buffer-file-name) flags))
 
 ;;;###autoload
 (defun pytest-pdb-directory (&optional flags)
   "Run pytest on all the files in the current buffer.
-Optional argument FLAGS py.test command line flags."
+Optional argument FLAGS pytest command line flags."
   (interactive)
   (pytest-directory (concat "--pdb " pytest-cmd-flags)))
 
@@ -216,7 +216,7 @@ Optional argument FLAGS py.test command line flags."
 ;;;###autoload
 (defun pytest-module (&optional flags)
   "Run pytest (via eggs/bin/test) on current buffer.
-Optional argument FLAGS py.test command line flags."
+Optional argument FLAGS pytest command line flags."
   (interactive)
   (pytest-run buffer-file-name flags))
 
@@ -230,7 +230,7 @@ Optional argument FLAGS py.test command line flags."
 ;;;###autoload
 (defun pytest-one (&optional flags)
   "Run pytest (via eggs/bin/test) on testable thing at point in current buffer.
-Optional argument FLAGS py.test command line flags."
+Optional argument FLAGS pytest command line flags."
   (interactive)
   (pytest-run (format "%s" (pytest-py-testable)) flags))
 
