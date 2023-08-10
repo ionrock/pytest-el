@@ -64,7 +64,7 @@
 
 ;;; Code:
 (require 's)
-(require 'cl)
+(require 'cl-lib)
 (require 'python)
 
 (defgroup pytest nil
@@ -244,7 +244,7 @@ Optional argument FLAGS pytest command line flags."
 ;;; Utility functions
 (defun pytest-find-test-runner ()
   (let ((result
-     (reduce '(lambda (x y) (or x y))
+     (cl-reduce '(lambda (x y) (or x y))
          (mapcar 'pytest-find-test-runner-names pytest-project-names))))
     (if result
     result
@@ -308,9 +308,9 @@ case.  This requires pytest >= 1.2."
              (file-name-directory (directory-file-name dn)))))))
 
 (defun pytest-project-root (dirname)
-  (reduce '(lambda (x y) (or x y))
-          (mapcar (lambda (d) (member d (directory-files dirname)))
-                  pytest-project-root-files)))
+  (cl-reduce '(lambda (x y) (or x y))
+             (mapcar (lambda (d) (member d (directory-files dirname)))
+                     pytest-project-root-files)))
 
 (defun pytest-current-root ()
   (if (not (buffer-file-name))
