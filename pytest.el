@@ -4,7 +4,7 @@
 
 ;; Licensed under the same terms as Emacs.
 
-;; Version: 0.2.1
+;; Version: 0.3.0
 ;; Keywords: pytest python testing
 ;; URL: https://github.com/ionrock/pytest-el
 ;; Package-Requires: ((s "1.9.0"))
@@ -51,6 +51,13 @@
 ;;
 ;; ; (setq pytest-project-root-test (lambda (dirname) (equal dirname "foo")))
 
+;; By default, test paths passed to pytest are absolute paths:
+;; 'cd /project/root && pytest /project/root/path/to/test.py'
+;; To override this behavior, set an optional base path that will be stripped from test path arguments:
+;; ; (setq pytest-relative-test-paths "/project/root/")
+;; which will set test paths relative to that base path:
+;; 'cd /project/root && pytest relative/path/to/test.py'
+
 ;; Probably also want some keybindings:
 ;; (add-hook 'python-mode-hook
 ;;           (lambda ()
@@ -90,6 +97,9 @@
 (defcustom pytest-cmd-format-string "cd '%s' && %s %s '%s'"
   "Format string used to run the pytest command.")
 
+(defcustom pytest-relative-test-paths nil
+  "If set, test paths will be defined relative to this base directory.")
+
 (defvar pytest-last-commands (make-hash-table :test 'equal)
   "Last pytest commands by pytest buffer name")
 
@@ -125,10 +135,15 @@ Optional argument FLAGS pytest command line flags."
                     (let ((testpath (if (listp tests) (car tests) tests)))
                       (pytest-find-project-root (file-name-directory testpath)))
                   (pytest-find-project-root)))
-         (tests (cond ((not tests) (list "."))
+         (tests (cond ((not tests) nil)
                       ((listp tests) tests)
                       ((stringp tests) (split-string tests))))
-         (tnames (mapconcat (apply-partially 'format "'%s'") tests " "))
+         (tnames
+          (mapconcat
+           (if pytest-relative-test-paths
+               (lambda (x) (file-relative-name x pytest-relative-test-paths))
+             (apply-partially 'format "'%s'"))
+           tests " "))
          (cmd-flags (if flags flags pytest-cmd-flags)))
     (pytest-cmd-format pytest-cmd-format-string where pytest cmd-flags tnames)))
 
