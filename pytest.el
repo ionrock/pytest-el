@@ -203,7 +203,7 @@ Optional argument FLAGS pytest command line flags."
   "Run pytest on all the files in the current buffer.
 Optional argument FLAGS pytest command line flags."
   (interactive)
-  (pytest-run (file-name-directory buffer-file-name) flags))
+  (pytest-run (expand-file-name default-directory) flags))
 
 ;;;###autoload
 (defun pytest-pdb-directory (&optional flags)
@@ -252,16 +252,9 @@ Optional argument FLAGS pytest command line flags."
 
 (defun pytest-find-test-runner-names (runner)
   "Find eggs/bin/test in a parent dir of current buffer's file."
-  (pytest-find-test-runner-in-dir-named
-   (file-name-directory buffer-file-name) runner))
-
-(defun pytest-find-test-runner-in-dir-named (dn runner)
-  (let ((fn (expand-file-name runner dn)))
-    (cond ((file-regular-p fn) fn)
-      ((equal dn "/") nil)
-      (t (pytest-find-test-runner-in-dir-named
-          (file-name-directory (directory-file-name dn))
-          runner)))))
+  (let ((containing-dir (locate-dominating-file default-directory runner)))
+    (when containing-dir
+      (expand-file-name runner containing-dir))))
 
 (defun pytest-py-testable ()
   "Create a path to a test.
